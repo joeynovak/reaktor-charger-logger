@@ -1,9 +1,10 @@
 {
-  "name": "reaktor-charger",
+  "name": "reaktor-charger-logger",
   "version": "0.0.1",
   "author": "joeynovak <joey.novak@gmail.com>",
   "description": "A Reaktor Charger Logging App",
-  "license": null,
+  "license": "mit",
+  "repository": "https://github.com/joeynovak/reaktor-charger-logger.git",
   "main": "./dist/electron/main.js",
   "scripts": {
     "build": "node .electron-vue/build.js && electron-builder",
@@ -58,6 +59,7 @@
   "dependencies": {
     "vue": "^2.5.16",
     "axios": "^0.18.0",
+    "serialport": "^7.1.1",
     "vue-electron": "^1.0.6",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1",

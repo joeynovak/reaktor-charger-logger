@@ -1,6 +1,16 @@
-# reaktor-charger
+# reaktor-charger-logging
 
 > A Reaktor Charger Logging App
+
+This electron app lets you view charging details when using a Turnigy Reaktor charger (It probably works with LOTS of other chargers as well)
+
+##Usage
+Click on "refresh port list", then click "open port".
+
+Note: The charger doesn't send anything via the USB port until it is doing something (charging, etc...)
+
+##Installing
+Currently there aren't any binary packages, you'll have to clone this repo and then follow the instructions below. (You'll need node and npm to be installed)
 
 #### Build Setup
 

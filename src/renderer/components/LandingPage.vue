@@ -4,26 +4,45 @@
     <main>
       <div class="left-side">
         <span class="title">
-          Welcome to your new project!
+          Welcome to the Reaktor Charger Logger
         </span>
         <system-information></system-information>
       </div>
 
       <div class="right-side">
-        <div class="doc">
-          <div class="title">Getting Started</div>
-          <p>
-            electron-vue comes packed with detailed documentation that covers everything from
-            internal configurations, using the project structure, building your application,
-            and so much more.
-          </p>
-          <button @click="open('https://simulatedgreg.gitbooks.io/electron-vue/content/')">Read the Docs</button><br><br>
-        </div>
-        <div class="doc">
-          <div class="title alt">Other Documentation</div>
-          <button class="alt" @click="open('https://electron.atom.io/docs/')">Electron</button>
-          <button class="alt" @click="open('https://vuejs.org/v2/guide/')">Vue.js</button>
-        </div>
+        <select v-model="selectedPort" >
+          <option v-for="serialPort in serialPorts" :value="serialPort.comName">{{ serialPort.comName }}</option>
+        </select>
+
+        <div>Serial Port</div>
+        <span>Baud Rate (Usually 9600)</span>
+        <select v-model="baudRate">
+          <option v-for="rate in [ '9600', '19200', '28800', '56700', '115200']" v-model="baudRate">{{ rate }}</option>
+        </select>
+
+        <button @click="exit">Quit</button>
+        <button v-show="!portOpen" @click="openPort">Open Port</button>
+        <button v-show="portOpen" @click="closePort">Close Port</button>
+        <button @click="refreshPorts">Refresh Port List</button>
+        <table>
+          <tr>
+            <th>Stat</th>
+            <th>Value</th>
+          </tr>
+          <tr>
+            <td>Input Voltage</td><td>{{ chargerData.inputVoltage }} V</td>
+          </tr>
+          <tr>
+            <td>Battery Voltage</td><td>{{ chargerData.batteryVoltage }} V</td>
+          </tr>
+          <tr>
+            <td>Charge Current</td><td>{{ chargerData.chargeCurrent }} A</td>
+          </tr>
+          <tr>
+            <td>Energy Placed in Battery</td><td>{{ chargerData.chargedMah / 1000 }} Ah</td>
+          </tr>
+
+        </table>
       </div>
     </main>
   </div>
@@ -31,14 +50,108 @@
 
 <script>
   import SystemInformation from './LandingPage/SystemInformation'
+  import SerialPort from 'serialport'
+  import Readline from '@serialport/parser-readline'
 
-  export default {
+  const remote = require('electron').remote
+
+export default {
     name: 'landing-page',
     components: { SystemInformation },
-    methods: {
-      open (link) {
-        this.$electron.shell.openExternal(link)
+    data: () => {
+      return {
+        serialPorts: [],
+        portOpen: false,
+        selectedPort: null,
+        baudRate: '9600',
+        currentPort: null,
+        currentParser: null,
+        chargerData: {
+          cellVoltage: [],
+          batteryVoltage: 0,
+          inputVoltage: 0,
+          mode: ''
+        }
       }
+    },
+    methods: {
+      exit () {
+        if (this.portOpen) {
+          this.closePort()
+        }
+        var window = remote.getCurrentWindow()
+        window.close()
+      },
+      init () {
+
+      },
+      refreshPorts () {
+        var vm = this
+        SerialPort.list((err, ports) => {
+          if (err) {
+            console.log(err)
+          } else {
+            console.log(ports)
+            vm.serialPorts = ports
+          }
+        })
+      },
+      parseData (data) {
+        var parsedData = {cellVoltage: []}
+        var splitData = data.split(';')
+        parsedData.mode = splitData[0]
+        parsedData.inputVoltage = splitData[3] / 1000
+        parsedData.batteryVoltage = splitData[4] / 1000
+        // charge Current is in centiAmps minstead of ma
+        parsedData.chargeCurrent = splitData[5] / 100
+        parsedData.chargedMah = splitData[14]
+        parsedData.cellVoltage[0] = splitData[6] / 1000
+        parsedData.cellVoltage[1] = splitData[7] / 1000
+        parsedData.cellVoltage[2] = splitData[8] / 1000
+        parsedData.cellVoltage[3] = splitData[9] / 1000
+        parsedData.cellVoltage[4] = splitData[10] / 1000
+        parsedData.cellVoltage[5] = splitData[11] / 1000
+
+        return parsedData
+      },
+      closePort () {
+        if (this.currentPort != null) {
+          this.currentPort.close()
+        }
+        this.portOpen = false
+      },
+      openPort () {
+        var vm = this
+        this.currentPort = new SerialPort(this.selectedPort)
+        this.currentParser = this.currentPort.pipe(new Readline({ delimiter: '\r\n' }))
+        this.currentParser.on('data', function (data) { vm.updateChargerData(vm.parseData(data)); console.log(data) })
+        this.portOpen = true
+      },
+      updateChargerData (data) {
+        this.chargerData.inputVoltage = data.inputVoltage
+        this.chargerData.batteryVoltage = data.batteryVoltage
+        this.chargerData.chargeCurrent = data.chargeCurrent
+        this.chargerData.chargedMah = data.chargedMah
+      }
+    },
+    computed: {
+    },
+    watch: {
+      selectedPort () {
+        if (this.currentPort != null) {
+          this.currentParser.closePort()
+          this.currentPort = null
+          this.currentParser = null
+        }
+      },
+      baudRate () {
+        if (this.currentPort != null) {
+
+        }
+      }
+    },
+    mounted () {
+      this.refreshPorts()
     }
   }
 </script>
