@@ -1,11 +1,12 @@
 <template>
   <div id="wrapper">
     <img id="logo" src="~@/assets/logo.png" alt="reaktor-charger">
+    <div class="title">
+      Welcome to the Reaktor Charger Logger
+    </div>
     <main>
       <div class="left-side">
-        <span class="title">
-          Welcome to the Reaktor Charger Logger
-        </span>
+        Batteries and Session tree will go here...
       </div>
 
       <div class="right-side">
@@ -226,7 +227,7 @@ export default {
   #logo {
     height: auto;
     margin-bottom: 20px;
-    width: 420px;
+    width: 312px;
   }
 
   main {
@@ -239,6 +240,7 @@ export default {
   .left-side {
     display: flex;
     flex-direction: column;
+    flex-basis: 30%;
   }
 
   .welcome {
