@@ -24,10 +24,19 @@
         <button v-show="!portOpen" @click="openPort">Open Port</button>
         <button v-show="portOpen" @click="closePort">Close Port</button>
         <button @click="refreshPorts">Refresh Port List</button>
+        <div v-show="chargerData.mode == 1">
+          Charging
+        </div>
+        <div v-show="chargerData.mode == 6">
+          Done
+        </div>
         <table>
           <tr>
             <th>Stat</th>
             <th>Value</th>
+          </tr>
+          <tr>
+            <td>Mode</td><td>{{ chargerData.mode }}</td>
           </tr>
           <tr>
             <td>Input Voltage</td><td>{{ chargerData.inputVoltage }} V</td>
@@ -36,12 +45,29 @@
             <td>Battery Voltage</td><td>{{ chargerData.batteryVoltage }} V</td>
           </tr>
           <tr>
-            <td>Charge Current</td><td>{{ chargerData.chargeCurrent }} A</td>
+            <td>Charge Current</td><td>{{ chargerData.chargeCurrent | formatNumberTwoDecimals }} A</td>
           </tr>
           <tr>
             <td>Energy Placed in Battery</td><td>{{ chargerData.chargedMah / 1000 }} Ah</td>
           </tr>
-
+          <tr>
+            <td>Cell 1 Voltage</td><td>{{ chargerData.cellVoltage[0] }} V</td>
+          </tr>
+          <tr>
+            <td>Cell 2 Voltage</td><td>{{ chargerData.cellVoltage[1] }} V</td>
+          </tr>
+          <tr>
+            <td>Cell 3 Voltage</td><td>{{ chargerData.cellVoltage[2] }} V</td>
+          </tr>
+          <tr>
+            <td>Cell 4 Voltage</td><td>{{ chargerData.cellVoltage[3] }} V</td>
+          </tr>
+          <tr>
+            <td>Cell 5 Voltage</td><td>{{ chargerData.cellVoltage[4] }} V</td>
+          </tr>
+          <tr>
+            <td>Cell 6 Voltage</td><td>{{ chargerData.cellVoltage[5] }} V</td>
+          </tr>
         </table>
       </div>
     </main>
@@ -70,7 +96,10 @@ export default {
           cellVoltage: [],
           batteryVoltage: 0,
           inputVoltage: 0,
-          mode: ''
+          mode: '',
+          mode2: '',
+          chargedMah: '',
+          chargeCurrent: ''
         }
       }
     },
@@ -99,7 +128,9 @@ export default {
       parseData (data) {
         var parsedData = {cellVoltage: []}
         var splitData = data.split(';')
-        parsedData.mode = splitData[0]
+        // This is the start characters
+        // parsedData.mode = splitData[0]
+        parsedData.mode = splitData[1]
         parsedData.inputVoltage = splitData[3] / 1000
         parsedData.batteryVoltage = splitData[4] / 1000
         // charge Current is in centiAmps minstead of ma
@@ -132,6 +163,14 @@ export default {
         this.chargerData.batteryVoltage = data.batteryVoltage
         this.chargerData.chargeCurrent = data.chargeCurrent
         this.chargerData.chargedMah = data.chargedMah
+        this.chargerData.mode = data.mode
+
+        this.chargerData.cellVoltage[0] = data.cellVoltage[0]
+        this.chargerData.cellVoltage[1] = data.cellVoltage[1]
+        this.chargerData.cellVoltage[2] = data.cellVoltage[2]
+        this.chargerData.cellVoltage[3] = data.cellVoltage[3]
+        this.chargerData.cellVoltage[4] = data.cellVoltage[4]
+        this.chargerData.cellVoltage[5] = data.cellVoltage[5]
       }
     },
     computed: {
@@ -152,6 +191,12 @@ export default {
     },
     mounted () {
       this.refreshPorts()
+    },
+    filters: {
+      formatNumberTwoDecimals (value) {
+        return value === undefined ? 0.00 : parseFloat(value).toFixed(2)
+      }
+
     }
   }
 </script>
