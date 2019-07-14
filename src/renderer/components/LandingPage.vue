@@ -1,4 +1,7 @@
 <template>
+  <v-container fluid grid-list-xl>
+    <v-layout wrap align-center>
+
   <div id="wrapper">
     <img id="logo" src="~@/assets/logo.png" alt="reaktor-charger">
     <div class="title">
@@ -10,25 +13,19 @@
       </div>
 
       <div class="right-side">
-        <select v-model="selectedPort" >
-          <option v-for="serialPort in serialPorts" :value="serialPort.comName">{{ serialPort.comName }}</option>
-        </select>
+        <v-select v-model="selectedPort" :items="serialPorts" item-text="comName" item-value="comName"></v-select>
 
-        <div>Serial Port</div>
-        <span>Baud Rate (Usually 9600)</span>
-        <select v-model="baudRate">
-          <option v-for="rate in [ '9600', '19200', '28800', '56700', '115200']" v-model="baudRate">{{ rate }}</option>
-        </select>
-
-        <button @click="exit">Quit</button>
-        <button v-show="!portOpen" @click="openPort">Open Port</button>
-        <button v-show="portOpen" @click="closePort">Close Port</button>
-        <button @click="refreshPorts">Refresh Port List</button>
+        <v-btn v-show="!portOpen" @click="openPort">Open Port</v-btn>
+        <v-btn v-show="portOpen" @click="closePort">Close Port</v-btn>
+        <v-btn @click="refreshPorts">Refresh Port List</v-btn>
         <div v-show="chargerData.mode == 1">
           Charging
         </div>
         <div v-show="chargerData.mode == 6">
           Done
+        </div>
+        <div v-show="chargerData.mode == 7">
+          Disconnected
         </div>
         <table>
           <tr>
@@ -72,6 +69,8 @@
       </div>
     </main>
   </div>
+    </v-layout>
+  </v-container>
 </template>
 
 <script>
